@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+// diretrizes referentes a código Java
+option java_multiple_files = true; // se eu passar isso como false, gero as classes Java em um único arquivo
+option java_package = "br.com.zup.edu"; // pacote java padrão do build
+option java_outer_classname = "FuncionarioServiceOuterClass"; // classe que guarda os metadados do código gerado. "Protobuf" por padrão.
+//option objc_class_prefix = "HLW"; // se eu quisesse compilar pra Objective C... não quero
+
+package br.com.zup.edu;
+
+import "google/protobuf/timestamp.proto";
+
+service FuncionarioService {
+
+  rpc cadastrar(FuncionarioRequest) returns (FuncionarioResponse) {} // método remoto a chamar
+
+}
+
+enum Cargo {
+  // nos enums, começamos pelo 0.
+  // se transmitirmos o enum com seus valores, ocupamos muito espaço. Por isso, atribuimos números.
+  DEV = 0;
+  QA = 1;
+  GERENTE = 3;
+}
+
+message FuncionarioRequest { // message são as classes que vão e vem nas chamadas gRPC
+  // o protobuf nos obriga a informar a posição dos campos. Esses dados não são auto-descritivos, pois são binários.
+  // para isso, precisamos identificar a posição desses dados para que os microsserviços consigam organizá-los.
+  string nome = 1;
+  string cpf = 2;
+  int32 idade = 3;
+  double salario = 4;
+  bool ativo = 5;
+  Cargo cargo = 6; // Cargo será um enum
+
+  // se o Endereco só for usado dentro do FuncionarioRequest, posso aninhá-lo internamente dentro do FuncionarioRequest
+  message Endereco {
+    string logradouro = 1;
+    string cep = 2;
+    string complemento = 3;
+  }
+  repeated Endereco enderecos = 7; // será uma lista
+}
+
+message FuncionarioResponse {
+
+  // tipo interno à message (class) FuncionarioResponse
+  // Para não ficarmos criando tipos, existem os well-known types na própria documentação do protobuf.
+  // Pro caso do criadoEm, queremos um timestamp.
+//  message Date {
+//    int32 ano = 1;
+//    int32 mes = 2;
+//    int32 dia = 3;
+//  }
+
+  string nome = 1;
+//  date criadoEm = 2; // os tipos Date, LocalDate, etc. São complexos, e não existem no protobuf. Para datas, podemos criar uma mensagem nossa do tipo Date
+  google.protobuf.Timestamp criadoEm = 2; // importamos esse timestamp direto do google (ver import acima)
+}
